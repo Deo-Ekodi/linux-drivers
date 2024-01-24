@@ -1,0 +1,16 @@
+0000000000000000000000000000000000000000 eb1f9d410dbdc9e2360c57c1ca692110b375acd6 Deo-Ekodi <deoekodi@gmail.com> 1706008707 -0330	commit (initial): registering char driver declaration
+eb1f9d410dbdc9e2360c57c1ca692110b375acd6 88b436c00ea11dcdd09ad5a5b96d7493d387e7be Deo-Ekodi <deoekodi@gmail.com> 1706013091 -0330	commit: file_operations
+88b436c00ea11dcdd09ad5a5b96d7493d387e7be ae622d52a9003df73dd864cea926945a44f99001 Deo-Ekodi <deoekodi@gmail.com> 1706014127 -0330	commit: unregister char device
+ae622d52a9003df73dd864cea926945a44f99001 ca86211447936a3d9ce3698b0e462dd648e77a63 Deo-Ekodi <deoekodi@gmail.com> 1706016182 -0330	commit: block deiver declared
+ca86211447936a3d9ce3698b0e462dd648e77a63 329bbb9158a11336a9d13cf0467a3ec88ecc92af Deo-Ekodi <deoekodi@gmail.com> 1706016187 -0330	commit: block drivers
+329bbb9158a11336a9d13cf0467a3ec88ecc92af 4ad92f9d2f21a2f6e9c56737afbc55a78e3aa6e2 Deo-Ekodi <deoekodi@gmail.com> 1706017161 -0330	commit: network drivers declared
+4ad92f9d2f21a2f6e9c56737afbc55a78e3aa6e2 123e249de6489e63ef2f57ac0964247054722a27 Deo-Ekodi <deoekodi@gmail.com> 1706021270 -0330	commit: mtd map driver
+123e249de6489e63ef2f57ac0964247054722a27 99588ce0549f69d289270e7343934ed40d017c2e Deo-Ekodi <deoekodi@gmail.com> 1706022212 -0330	commit: frame buffer
+99588ce0549f69d289270e7343934ed40d017c2e 4259716f9433959ac3e3e0e2fba3ec999234bf91 Deo-Ekodi <deoekodi@gmail.com> 1706036854 -0330	commit: frame buffer device driver
+4259716f9433959ac3e3e0e2fba3ec999234bf91 3c0416452b1ac4bbe258722c30ff9099316232ed Deo-Ekodi <deoekodi@gmail.com> 1706038915 -0330	commit: kernel-resources-part-one
+3c0416452b1ac4bbe258722c30ff9099316232ed 974e50b71ee2e7909cf9143af2da91894f90df64 Deo-Ekodi <deoekodi@gmail.com> 1706041019 -0330	commit: char drivers outlined
+974e50b71ee2e7909cf9143af2da91894f90df64 36fe53b9cc7096238414e1728a5defc3760a5541 Deo-Ekodi <deoekodi@gmail.com> 1706041023 -0330	commit: char drivers outline
+36fe53b9cc7096238414e1728a5defc3760a5541 0032ec4419e15efeb1fab68e36ed2e095b0a2e9e Deo-Ekodi <deoekodi@gmail.com> 1706048811 -0330	commit: introduction to "sleeping"
+0032ec4419e15efeb1fab68e36ed2e095b0a2e9e 0d516f1ef292cfc6d7cc2ca5f23f4cd1dec39a90 Deo-Ekodi <deoekodi@gmail.com> 1706084433 -0330	commit: drivers in theoretical detail
+0d516f1ef292cfc6d7cc2ca5f23f4cd1dec39a90 403aff2cf413086fe0b125c9687a7a200fde335d Deo-Ekodi <deoekodi@gmail.com> 1706094537 -0330	commit: network device drivers thory
+403aff2cf413086fe0b125c9687a7a200fde335d d527647cb859a95d964074fb8107b228658f0a6b Deo-Ekodi <deoekodi@gmail.com> 1706098426 -0330	commit: --

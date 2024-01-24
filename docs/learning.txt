@@ -1,0 +1,414 @@
+linux-drivers
+=============
+
+>Device Files
+	-Everything is a file(devices inclusive)
+	-devices are located in /dev direrctory
+	-devices have major / minor numbers (allocated statically in '''devices.txt''') and also dynamically
+	-user space is exposed to (char, block and network) devices and some are abstract
+	-
+	-
+	-
+	-
+	-
+>Major & Minor Numbers
+	-each device instance has major(char & block drivers) & minor numbers(device instance)
+	-minor number not recognized by kernel(only used by driver)
+	-
+	-
+> /proc & procfs
+	- '/proc' is a virtual filesystem of type procfs -> (all files & directories in /proc (exist in memory))
+	- '/proc' is used to import useful info from kernel - used byb subsystems, drivers & core functionality (just like a mess)
+	-
+	-
+> /sys & sysfs	
+	-new way of exporting kernel info to user-space
+	-will eventually replace /proc
+	-contains multiple views of same hardware :
+		>bus view(/sys/bus)
+		>device view(/sys/devices)
+		>class view(/sys/class)
+	-
+	-
+	-
+> /dev & udev	
+	-main repo for device nodes
+	-udev dynamically creates entries in /dev
+	-can be configured to provide persistent view
+	-
+	-
+
+
+Kernel Resources
+>printk
+	-equivalent of libc's printf()
+	>KERN_EMERG		- urgent messages before crash
+	>KERN_ALERT		- Alert for immediate action
+	>KERN_CRIT		- Critical issues
+	>KERN_ERR		- important error
+	>KERN_NOTICE	- normal
+	>KERN_WARNING	- non-critical warnings
+	>KERN_INFO		- informational
+	>KERN_DEBUG		- debugging messages
+
+	-since overuse of printk is unprofessional, use 'printk_ratelimit()' to moderate
+	-
+	-
+> /proc
+	-helps avoid syslog overhead
+	-seq files - <linux/seq_file.h>
+	-
+	-
+	-
+
+Types of Drivers
+================
+>char device driver
+>block device driver
+>network device driver
+>MTD map file
+>Framebuffer driver	
+
+(i)		char drivers
+		============
+	>major and minor numbers
+		-available in <linux/fs.h>
+		-device nodes available in '/dev'
+		-major/minor tuples are provided for each device
+		-one major number(20 bit) 	= one device type
+		-minor number(12 bit)		= device instance
+		-kernel always ignores minor number
+		-device numbers are internally represented in 'dev_t'
+		-	<linux/kdev_t.h>
+		-these numbers can be statically or dynamically allocated
+		-deallocation must be done afterwards
+
+	>file operations structure
+		-provides connection between major and minor numbers to char driver callbacks
+		-	'''struct file_operations'''
+		-	<linux/fs.h>
+		-file_operations are actual implementation of main filesystem calls :
+			open, close, read, write ...
+		-NULL for unsupported calls
+
+	>file structure
+		-	<linux/fs.h>
+		-represents an open file
+		-released once all file instances are closed
+
+		>inode structure
+		-kernel internal representation of files
+		-access inode fields using macros
+		
+		>char device registration
+		-must allocate 'struct cdev' so kernel can call char device callbacks
+		-use a device-specific struct which contains 'struct cdev' as one of its elements
+		-Must set the owner
+		-Must add device to system (both ststic and dynamic)
+
+	>older way char device registration
+
+	>open and release
+		open should
+		-identify device being opened
+		-check for device-specific errors
+		-initialize device if first open
+		-update file_operations if necessary
+		release should
+		-close()
+		-shutdown device on last close
+
+	>read and write
+		-copy_to_user and copy_from_user		
+
+	>read
+		-interpretation of return value by user space
+		-bytes == count, transfer success
+		-count > bytes > 0, application retries
+		-bytes == o, end-of-file
+		-bytes < 0, errno => errno from <linux/errno.h>
+		-if data == NULL, read() should block
+
+	>write
+		-interpretation of return value by user space
+		-bytes == count, transfer success
+		-count > bytes > 0, application retries
+		-bytes == o, no error .. retry
+		-bytes < 0, errno => errno from <linux/errno.h>	
+
+	>readv/writev
+		-vector operations
+		-vectors contain : buffer + length value
+		-if missing, r/w are called multiple times by kernel
+		-easiest, have a loop in driver calling read/write
+
+	>ioctl
+		-must be able to control device with more than just read/write
+		-some implementations open unauditable back-doors to drivers
+		-	<linux/asm/ioctl.h>	// implements "magic numbers" split up in several bitfields
+	-
+
+	>blocking i/o
+		-what if a driver can't satisfy read() / write()?
+		-> it must be able to put calling process to sleep
+		sleeping
+		-never sleep in a critical section
+		-never sleep with interrupts disabled
+		-on wakeup, no time or event context, recheck sleep condition
+		-never sleep if waking procedure is not sure
+		-a 'wait queue' contsins list of sleeping processes
+		-processes are woken up by interrupts
+		-wait queues in 	<linux/wait.h>
+		-process of sleeping :
+			...allocate, initialize and pend wait queue query
+			...set task state
+			...call scheduler
+
+	>poll and select
+		-non-blocking i/o operations use poll, select and epoll to determine if data is ready for consumption
+		-checks file descriptors if one of them is ready for read/write or wait for read/write
+		-	<linux/poll.h>
+
+	>fsync
+		-flushes pending output
+		-fsync() doesn't return until all data is flushed to device
+
+	>fasync
+		-asynchronous notification
+
+	>llseek
+		-seek a device
+		-must cooperate with r/w
+		-	<linux/fs.h>
+
+	>access control on a device file
+		-only one process can open a device
+		-accessed by single user at a time - allows user to open device multiple times
+	
+(ii)	block drivers
+		=============
+	>registration
+		-	<linux/fs.h>
+		-block driver registration
+		-disk registration
+
+	>block device operations
+		-open() and release() methods
+		-ioctl
+
+	>request processing
+		-core block of i/o
+		-every block driver must have request queue
+		-request queues
+			stores requests
+			should present only valid requests
+		-	<linux/blkdev.h>?? does exist??
+		-check queuing functions
+		-queue control functions
+		-check anatomy of a request(biostructure, helper functions)
+		-request structure fields
+		-barrier requests
+		-nonretryable requests
+		-request comppletion functions
+
+	>extras
+	-command pre-preparation - get info about pending request prior to it being returned
+	-some hardware supports having multiple requests running in parallel
+
+(iii)	network drivers
+		===============
+	>introduction
+		-network devices have no '/dev' entry
+		-they use 'sockets' to communicate over "network"
+		-they receive data from outside world
+		-supports lot of configurations
+		-linux "net" subsystem is independent of network and hardware protocals
+		-network stack makes it possible to use IP and Ethernet Protocals
+
+	>connecting to the kernel
+		-device registration
+		-no major and minor numbers
+		-every interface detected must be registered as part of the system's list of recognized interfaces
+		-struct net_device		<linux/netdevice.h>
+		-struct net_device is a kobject
+		-allocate and initialize device
+		-module unloading(unregister)
+
+	>net_device structure
+		-global information
+		-hardware information
+		-helper functions for setting up interface information
+		-interface information
+		-features
+		-fundamental device methods -- open(), stop() ...
+		-optional device methods -- poll(), header_cache() ...
+		-utility fields
+
+	>open and close
+		-all done via ifconfig
+			...assign address to interface
+			...turn interface on
+		-open()
+			...retrieve MAC address from device
+			...set MAC address in 'struct net_device' (dev->dev_addr)
+			...start up device queue
+		-close()
+			...stop device queue
+
+	>packet transmission
+		-kernel signals transmission to driver
+		-packets are haanded over to driver with everything they need to travel over the network
+		-when transmitted packet is shorter than minimum size supported by device, zero-out the remainder to avoid security leaks
+
+		controlling transmission concurrency
+		-
+		-
+		-
+
+		transmission timeouts
+		-no need to setup timers
+		-handled by network subsystem
+		-if period is exceeded, tx_timeout() is called automatically
+		-
+		-
+
+		scatter/gather i/o
+		-helps avoid packet assembly
+		-allows zero copy
+		-checks whether packet is fragmented
+
+	>packet reception
+		-interrupt-driven mode (one interrupt per packet)
+		-polled (high bandwidth)
+
+	>interrupt handler
+		-caused by (link status change, transmission complete, new packet)
+		-on receipt .. check "packet reception"
+		-on send, deallocate transmitted buffer
+		-
+
+	>receive interrupt mitigation
+		-too many packets coming in rapidly
+		-too many interrupts generated
+		-kernel provides NAPI : New API
+		-NAPI provides polliing on device
+
+	>changes in link state
+		-changing carrier state
+		-checking carrier state
+
+	>socket buffers
+		-unit for packet travel in kernel
+		-important:
+			...device responsible for buffer
+			...packet header pointers
+			...actual packet length
+			...fragmented packet partition length if scatter/gather
+			...checksum policy for incoming packet
+			...packet type
+
+	>MAC address resolution
+		-ARP with ethernet - managed by kernel, no need for ethernet driver to do anything special
+		-overriding ARP - use Ethrrnet abstractions while avoiding ARP
+		-non-ethernet headers
+
+	>custom 'ioctl' commands
+		-	<linux/sockios.h>	contains already recognized commands
+		-ioctl commands not recognized by protoco are passsed back t driver
+
+	>statistical information
+		-
+		-
+		-
+		-
+
+	>multicast
+
+	>extras
+		-media independent interface support
+		-ethtool support
+		-netpoll - for remote debugging
+
+(iv)	PCI deivers
+		===========
+		
+	-
+	-
+	-
+	-
+	-
+	-
+	-
+	-
+	-
+	-
+	-
+	-
+	-
+	-
+	-
+	-
+	-
+	-
+	-
+	-
+	-
+	-
+	-
+	-
+	-
+	-
+	-
+	-
+	-
+	-
+	-
+	-
+	-
+	-
+	-
+	-
+	-
+	-
+	-
+	-
+	-
+	-
+	-
+	-
+	-
+	-
+	-
+	-
+	-
+	-
+	-
+	-
+	-
+	-
+	-
+	-
+	-
+	-
+	--
+	
+	-
+	-
+	-
+	-
+	-
+	-
+	-
+	-
+	-
+	-
+	-
+	-
+	-
+	-
+	-
+	-
+	-
+	-
+	-
+	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
